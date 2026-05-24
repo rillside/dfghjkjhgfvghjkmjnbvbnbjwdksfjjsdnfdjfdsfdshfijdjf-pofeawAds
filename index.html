@@ -313,6 +313,60 @@
         flex-wrap: wrap;
       }
 
+      .enter-btn {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 700;
+        font-size: 0.78rem;
+        letter-spacing: 0.06em;
+        color: #fff;
+        background: linear-gradient(135deg, #059669, #047857);
+        border: none;
+        border-radius: 1rem;
+        padding: 1rem 1.5rem;
+        width: 100%;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease,
+          opacity 0.2s;
+        box-shadow:
+          0 4px 20px rgba(5, 150, 105, 0.45),
+          0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        margin-top: 0.75rem;
+      }
+      .enter-btn::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.13) 0%,
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .enter-btn:active {
+        transform: scale(0.97);
+      }
+      .enter-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .enter-btn.done {
+        background: linear-gradient(135deg, #1e3a2f, #14532d);
+        box-shadow: none;
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        color: #6ee7b7;
+        cursor: default;
+      }
+
       .next-btn {
         font-family: "Inter", sans-serif;
         font-weight: 600;
@@ -336,6 +390,15 @@
       }
       .next-btn:active {
         transform: scale(0.98);
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       /* ── Skeleton ── */
@@ -390,6 +453,7 @@
       }
     </style>
   </head>
+
   <body class="min-h-screen p-4 flex items-center justify-center">
     <!-- Toast -->
     <div id="toast">
@@ -551,6 +615,23 @@
             </div>
           </div>
 
+          <button id="enter-btn" onclick="markEntry()" class="enter-btn">
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M9 12l2 2 4-4" />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+            Отметить вход
+          </button>
+
           <button id="scan-next-btn" onclick="resetScanner()" class="next-btn">
             ↩ Сканировать следующий
           </button>
@@ -630,25 +711,21 @@
       initTelegramWebApp();
 
       let isTicketViewMode = false;
+      let currentTicketId = null; // хранит ID текущего отсканированного билета
 
-      // Ждём пока Telegram WebApp полностью инициализируется
-      if (tg) {
-        tg.ready();
-        // Небольшой defer чтобы initDataUnsafe точно заполнился
-        setTimeout(function checkStartParam() {
-          const startParam = tg?.initDataUnsafe?.start_param;
-          if (startParam) {
-            isTicketViewMode = true;
-            document.getElementById("scan-next-btn").classList.add("hidden");
-            document.getElementById("scan-container").classList.add("hidden");
-            document
-              .getElementById("result-container")
-              .classList.remove("hidden");
-            setLoadingState();
-            fetchDataFromServer(startParam);
-          }
-        }, 50);
-      }
+      (function checkStartParam() {
+        const startParam = tg?.initDataUnsafe?.start_param;
+        if (startParam) {
+          isTicketViewMode = true;
+          document.getElementById("scan-next-btn").classList.add("hidden");
+          document.getElementById("scan-container").classList.add("hidden");
+          document
+            .getElementById("result-container")
+            .classList.remove("hidden");
+          setLoadingState();
+          fetchDataFromServer(startParam);
+        }
+      })();
 
       // ─── Loading skeleton ────────────────────────────────────────────────────
 
@@ -731,6 +808,7 @@
       // ─── Fetch ───────────────────────────────────────────────────────────────
 
       async function fetchDataFromServer(ticketId) {
+        currentTicketId = ticketId;
         if (!isTicketViewMode) {
           setLoadingState();
           document.getElementById("scan-container").classList.add("hidden");
@@ -812,8 +890,104 @@
           statusEl.innerHTML = `<div class="status-valid"><span>✅</span><span>ДЕЙСТВИТЕЛЕН — ВХОД РАЗРЕШЁН</span></div>`;
         }
 
+        const enterBtn = document.getElementById("enter-btn");
+        if (ticket?.entered_at) {
+          // Уже использован — кнопку скрываем
+          enterBtn.classList.add("hidden");
+        } else {
+          // Действителен — показываем кнопку
+          enterBtn.classList.remove("hidden");
+          enterBtn.classList.remove("done");
+          enterBtn.disabled = false;
+          enterBtn.innerHTML = `
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+            </svg>
+            Отметить вход`;
+        }
+
         document.getElementById("scan-container").classList.add("hidden");
         document.getElementById("result-container").classList.remove("hidden");
+      }
+
+      // ─── Mark entry ──────────────────────────────────────────────────────────
+
+      async function markEntry() {
+        if (!currentTicketId) return;
+
+        const btn = document.getElementById("enter-btn");
+        btn.disabled = true;
+        btn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.8s linear infinite">
+            <path d="M21 12a9 9 0 1 1-6.22-8.56"/>
+          </svg>
+          Отмечаем...`;
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/participant/${encodeURIComponent(currentTicketId)}/enter`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Tg-Init-Data": tg?.initData || "",
+                "ngrok-skip-browser-warning": "69420",
+              },
+            },
+          );
+
+          if (!response.ok) {
+            btn.disabled = false;
+            btn.innerHTML = `
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+              </svg>
+              Отметить вход`;
+            if (response.status === 409)
+              showToast(
+                "warn",
+                "Уже отмечен",
+                "Этот билет уже был использован ранее.",
+              );
+            else
+              showToast(
+                "error",
+                "Ошибка",
+                `Не удалось отметить вход. Код: ${response.status}`,
+              );
+            return;
+          }
+
+          // Успех — меняем кнопку и статус
+          btn.classList.add("done");
+          btn.innerHTML = `
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+            </svg>
+            Вход отмечен`;
+
+          const statusEl = document.getElementById("ticket-status");
+          const now = new Date().toLocaleString("ru-RU");
+          statusEl.innerHTML = `<div class="status-used"><span>❌</span><span>УЖЕ ИСПОЛЬЗОВАН<br><span style="font-family:'Inter',sans-serif;font-weight:500;font-size:0.65rem;opacity:0.75">${now}</span></span></div>`;
+
+          showToast(
+            "success",
+            "Вход отмечен!",
+            "Участник успешно зарегистрирован на входе.",
+          );
+        } catch {
+          btn.disabled = false;
+          btn.innerHTML = `
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+            </svg>
+            Отметить вход`;
+          showToast(
+            "error",
+            "Нет связи с сервером",
+            "Проверьте интернет-соединение.",
+          );
+        }
       }
 
       // ─── Reset ───────────────────────────────────────────────────────────────
