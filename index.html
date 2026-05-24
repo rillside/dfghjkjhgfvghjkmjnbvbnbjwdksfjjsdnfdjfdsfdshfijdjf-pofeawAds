@@ -331,6 +331,7 @@
         const headersToSend = {
           "Content-Type": "application/json",
           "X-Tg-Init-Data": tg?.initData || "",
+          "ngrok-skip-browser-warning": "69420"
         };
         logToScreen("INFO", "👉 Отправляемые заголовки:", headersToSend);
 
