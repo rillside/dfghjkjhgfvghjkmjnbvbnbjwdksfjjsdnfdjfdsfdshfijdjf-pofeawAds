@@ -93,6 +93,7 @@
 
           <button
             type="button"
+            id="scan-btn"
             onclick="startScanning()"
             class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-xl transition duration-200 shadow-lg shadow-purple-900/50 active:scale-95 text-base tracking-wide scaner-button"
           >
@@ -108,7 +109,7 @@
             id="event-title"
             class="text-base font-bold text-center text-purple-200 border-b border-white/10 pb-3 mb-4 tracking-wide"
           >
-            Загрузка данных билета...
+            Название мероприятия
           </h2>
 
           <div class="space-y-3.5 text-sm">
@@ -172,54 +173,29 @@
           ? window.Telegram.WebApp
           : null;
 
-      // ТВОЙ АКТУАЛЬНЫЙ URL ДОМЕНА NGROK
+      // СЮДА ТВОЙ ДОМЕН NGROK
       const API_BASE_URL = "https://daughter-equate-suburb.ngrok-free.dev";
 
       function initTelegramWebApp() {
-        console.log("Инициализация Telegram WebApp...");
-        if (!tg) {
-          console.warn("Telegram WebApp объект не найден! Работаем вне ТГ?");
-          return;
-        }
+        if (!tg) return;
         try {
           tg.ready();
-          if (typeof tg.expand === "function") {
-            tg.expand();
-          }
-        } catch (error) {
-          console.error("Ошибка при инициализации ТГ:", error.message);
+          if (typeof tg.expand === "function") tg.expand();
+        } catch (e) {
+          console.error("Ошибка инициализации WebApp:", e);
         }
       }
 
       function showError(message) {
         const errorElement = document.getElementById("error-message");
         errorElement.innerText = message;
-        errorElement.className =
-          "text-sm text-red-200 bg-red-950/80 border border-red-500/40 rounded-xl p-3 mb-4 text-center";
         errorElement.classList.remove("hidden");
       }
 
-      function hideError() {
-        const errorElement = document.getElementById("error-message");
-        errorElement.classList.add("hidden");
-        errorElement.innerText = "";
-      }
+      document.addEventListener("DOMContentLoaded", () => {
+        initTelegramWebApp();
 
-      function setLoadingState() {
-        document.getElementById("event-title").innerText =
-          "Загрузка данных билета...";
-        document.getElementById("buyer-name").innerText = "—";
-        document.getElementById("tg-username").innerText = "—";
-        document.getElementById("event-info").innerText = "—";
-        document.getElementById("ticket-price").innerText = "—";
-        document.getElementById("ticket-status").innerText = "—";
-      }
-
-      // Запускаем первичную инициализацию
-      initTelegramWebApp();
-
-      // АВТО-ПЕРЕХВАТ ПРИ СТАРТЕ ПО ПРЯМОЙ ССЫЛКЕ (БЕЗОПАСНЫЙ)
-      window.addEventListener("DOMContentLoaded", () => {
+        // ОБРАБОТКА СТАРТАПА (ПРЯМАЯ ССЫЛКА)
         const urlParams = new URLSearchParams(window.location.search);
         let ticketId =
           urlParams.get("tgWebAppStartParam") || urlParams.get("startapp");
@@ -229,15 +205,14 @@
         }
 
         if (ticketId) {
-          console.log(
-            `[PROD] Найдена прямая ссылка. Проверяем билет #${ticketId}`,
-          );
           fetchDataFromServer(ticketId);
         }
       });
 
       function startScanning() {
-        hideError();
+        const errorElement = document.getElementById("error-message");
+        errorElement.classList.add("hidden");
+
         if (!tg) {
           showError("Не могу открыть сканер: запуск вне Telegram");
           return;
@@ -254,7 +229,7 @@
           { text: "Наведите камеру на QR-код билета" },
           function (text) {
             handleScannedUrl(text);
-            return true; // Закрываем шторку камеры
+            return true;
           },
         );
       }
@@ -283,7 +258,14 @@
       }
 
       async function fetchDataFromServer(ticketId) {
-        setLoadingState();
+        // Живой визуальный апдейт кнопки (форсирует активность потока WebView)
+        const btn = document.getElementById("scan-btn");
+        if (btn) {
+          btn.disabled = true;
+          btn.innerText = "[ ⏳ ] Загрузка билета...";
+          btn.classList.replace("bg-purple-600", "bg-purple-800");
+        }
+
         const targetUrl = `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}`;
 
         try {
@@ -308,9 +290,15 @@
           const data = await response.json();
           renderTicketCard(data);
         } catch (error) {
-          console.error("[PROD FETCH ERROR]:", error.message);
+          console.error("Fetch error:", error.message);
           showError(error.message || "Не удалось получить данные билета.");
-          resetScanner();
+
+          // Возвращаем кнопку в исходное состояние при ошибке
+          if (btn) {
+            btn.disabled = false;
+            btn.innerText = "[ ] Открыть сканер";
+            btn.classList.replace("bg-purple-800", "bg-purple-600");
+          }
         }
       }
 
@@ -342,13 +330,23 @@
             "text-xs font-bold mt-0.5 text-emerald-400 bg-emerald-950/40 p-1.5 rounded border border-emerald-500/20";
         }
 
-        // Переключаем контейнеры СТРОГО в самом конце, когда все данные уже отрисованы в DOM
+        // Переключаем экраны строго в самом конце
         document.getElementById("scan-container").classList.add("hidden");
         document.getElementById("result-container").classList.remove("hidden");
       }
 
       function resetScanner() {
-        hideError();
+        const btn = document.getElementById("scan-btn");
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = "[ ] Открыть сканер";
+          btn.classList.replace("bg-purple-800", "bg-purple-600");
+        }
+
+        const errorElement = document.getElementById("error-message");
+        errorElement.classList.add("hidden");
+        errorElement.innerText = "";
+
         document.getElementById("result-container").classList.add("hidden");
         document.getElementById("scan-container").classList.remove("hidden");
       }
