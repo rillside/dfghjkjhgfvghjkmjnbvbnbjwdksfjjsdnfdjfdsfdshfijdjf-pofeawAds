@@ -7,22 +7,20 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-      /* Общий фон страницы (для больших экранов/планшетов) — просто плоский тёмный цвет */
       body {
         background-color: #0b0d19;
       }
 
-      /* Окошко приложения по центру — ТЕПЕРЬ ТУТ ТВОЕ ФОТО */
       #app-shell {
         position: relative;
         width: 100%;
-        max-width: 420px; /* Ограничение ширины карточки */
-        min-height: 700px; /* Минимальная высота, чтобы фото смотрелось красиво */
-        background-image: url("img/background.jpg"); /* СЮДА ТВОЕ ФОТО */
+        max-width: 420px;
+        min-height: 700px;
+        background-image: url("img/background.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        border-radius: 2rem; /* Закругляем края самого фото */
+        border-radius: 2rem;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         overflow: hidden;
         display: flex;
@@ -30,7 +28,6 @@
         justify-content: space-between;
       }
 
-      /* Затемняющий слой ПРЯМО ПОВЕРХ ФОТО, чтобы кнопки и текст были читаемыми */
       #app-shell::before {
         content: "";
         position: absolute;
@@ -38,12 +35,11 @@
         background: linear-gradient(
           180deg,
           rgba(11, 13, 25, 0.2) 0%,
-          rgba(11, 13, 25, 0.75) 100%
+          rgba(11, 13, 25, 0.85) 100%
         );
         z-index: 0;
       }
 
-      /* Поднимаем весь контент над слоем затемнения */
       .content-layer {
         position: relative;
         z-index: 1;
@@ -53,7 +49,7 @@
         color: #ffffff;
         font-family: "Arial Rounded MT Bold", Arial, Helvetica, sans-serif;
         font-weight: bold;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6); /* Чтобы текст не терялся на фото */
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
       }
 
       .scaner-button {
@@ -69,25 +65,22 @@
     </style>
   </head>
 
-  <body
-    class="text-gray-100 font-sans min-h-screen p-4 flex items-center justify-center"
-  >
+  <body class="text-gray-100 font-sans min-h-screen p-4 flex items-center justify-center">
     <div id="app-shell" class="p-6">
+
       <header class="text-center my-4 content-layer">
         <h1 class="text-3xl title tracking-wide">LEVEL DANCE</h1>
         <p class="event-text">Мероприятия</p>
-        <p
-          class="text-xs text-purple-200 font-medium tracking-widest uppercase mt-2"
-        >
+        <p class="text-xs text-purple-200 font-medium tracking-widest uppercase mt-2">
           Контроль Доступа
         </p>
       </header>
 
       <main class="w-full content-layer my-auto">
+
         <div id="scan-container" class="w-full text-center p-2">
           <p class="text-gray-100 text-sm mb-8 font-medium drop-shadow-md">
-            Нажмите кнопку ниже, чтобы открыть камеру Telegram и отсканировать
-            QR-код зрителя.
+            Нажмите кнопку ниже, чтобы открыть камеру Telegram и отсканировать QR-код билета.
           </p>
 
           <div
@@ -106,68 +99,55 @@
 
         <div
           id="result-container"
-          class="w-full bg-slate-950/60 backdrop-blur-md rounded-2xl border border-white/10 p-5 shadow-xl hidden"
+          class="w-full bg-slate-950/75 backdrop-blur-md rounded-2xl border border-white/10 p-5 shadow-xl hidden"
         >
-          <h2
-            class="text-lg font-bold text-center text-purple-200 border-b border-white/10 pb-3 mb-4 tracking-wide"
-          >
-            Данные участника
+          <h2 id="event-title" class="text-base font-bold text-center text-purple-200 border-b border-white/10 pb-3 mb-4 tracking-wide">
+            Название мероприятия
           </h2>
 
-          <div class="space-y-4">
+          <div class="space-y-3.5 text-sm">
             <div>
-              <span
-                class="text-[10px] text-gray-400 uppercase font-bold tracking-widest"
-                >ФИО</span
-              >
-              <p id="user-name" class="text-lg font-bold text-white mt-0.5">
-                —
-              </p>
+              <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">Статус билета</span>
+              <p id="ticket-status" class="font-bold mt-0.5">—</p>
             </div>
+
             <div>
-              <span
-                class="text-[10px] text-gray-400 uppercase font-bold tracking-widest"
-                >Категория</span
-              >
+              <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">ФИО Покупателя</span>
+              <p id="buyer-name" class="font-semibold text-white mt-0.5">—</p>
+            </div>
+
+            <div>
+              <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">Telegram аккаунт</span>
+              <p id="tg-username" class="text-purple-300 mt-0.5">—</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
               <div>
-                <p
-                  id="user-ticket"
-                  class="inline-block px-3 py-0.5 text-xs font-bold rounded-md bg-purple-500/20 text-purple-200 border border-purple-500/30 mt-1"
-                >
-                  —
-                </p>
+                <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">ID / Тип</span>
+                <p id="event-info" class="text-xs text-gray-200 mt-0.5">—</p>
               </div>
-            </div>
-            <div>
-              <span
-                class="text-[10px] text-gray-400 uppercase font-bold tracking-widest"
-                >Статус отметки</span
-              >
-              <p
-                id="user-status"
-                class="text-sm font-semibold mt-1 text-gray-200"
-              >
-                —
-              </p>
+              <div class="text-right">
+                <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest block">Цена билета</span>
+                <p id="ticket-price" class="text-emerald-400 font-bold mt-0.5">—</p>
+              </div>
             </div>
           </div>
 
           <button
             onclick="resetScanner()"
-            class="w-full mt-6 bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl border border-white/10 transition duration-200 text-sm"
+            class="w-full mt-6 bg-white/10 hover:bg-white/20 text-white font-medium py-2.5 px-4 rounded-xl border border-white/10 transition duration-200 text-sm shadow-inner"
           >
-            Сканировать следующего
+            Сканировать следующий
           </button>
         </div>
       </main>
     </div>
 
     <script>
-      const tg =
-        window.Telegram && window.Telegram.WebApp
-          ? window.Telegram.WebApp
-          : null;
-      const API_BASE_URL = "https://твой-домен-сервера.ru";
+      const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+
+      // СЮДА СВОЙ ДОМЕН/NGROK СЕРВЕРА FASTAPI
+      const API_BASE_URL = "https://daughter-equate-suburb.ngrok-free.dev/";
 
       function initTelegramWebApp() {
         if (!tg) return;
@@ -193,9 +173,12 @@
 
       function setLoadingState() {
         hideError();
-        document.getElementById("user-name").innerText = "Загрузка...";
-        document.getElementById("user-ticket").innerText = "—";
-        document.getElementById("user-status").innerText = "—";
+        document.getElementById("event-title").innerText = "Загрузка данных билета...";
+        document.getElementById("buyer-name").innerText = "—";
+        document.getElementById("tg-username").innerText = "—";
+        document.getElementById("event-info").innerText = "—";
+        document.getElementById("ticket-price").innerText = "—";
+        document.getElementById("ticket-status").innerText = "—";
       }
 
       initTelegramWebApp();
@@ -206,15 +189,12 @@
           showError("Откройте страницу внутри Telegram Web Apps.");
           return;
         }
-        if (
-          typeof tg.isVersionAtLeast !== "function" ||
-          !tg.isVersionAtLeast("6.4")
-        ) {
+        if (typeof tg.isVersionAtLeast !== "function" || !tg.isVersionAtLeast("6.4")) {
           showError("Пожалуйста, обновите Telegram до версии 6.4 или выше.");
           return;
         }
         tg.showScanQrPopup(
-          { text: "Наведите камеру на QR-код гостя" },
+          { text: "Наведите камеру на QR-код билета" },
           function (text) {
             handleScannedUrl(text);
             return true;
@@ -231,22 +211,22 @@
         try {
           parsedUrl = new URL(text);
         } catch (error) {
-          showError("QR-код не содержит рабочий URL.");
+          showError("QR-код не содержит рабочий URL билета.");
           return;
         }
-        const participantId = parsedUrl.searchParams.get("startapp");
-        if (!participantId) {
-          showError("В QR-коде не найден параметр startapp.");
+        const ticketId = parsedUrl.searchParams.get("startapp");
+        if (!ticketId) {
+          showError("В QR-коде не найден параметр билета (startapp).");
           return;
         }
-        fetchDataFromServer(participantId);
+        fetchDataFromServer(ticketId);
       }
 
-      async function fetchDataFromServer(participantId) {
+      async function fetchDataFromServer(ticketId) {
         setLoadingState();
         try {
           const response = await fetch(
-            `${API_BASE_URL}/api/participant/${encodeURIComponent(participantId)}`,
+            `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}`,
             {
               method: "GET",
               headers: {
@@ -256,31 +236,43 @@
             },
           );
           if (!response.ok) {
-            if (response.status === 404) throw new Error("Участник не найден.");
-            throw new Error("Ошибка сервера.");
+            if (response.status === 404) throw new Error("Билет не найден в базе данных.");
+            if (response.status === 403) throw new Error("Ошибка безопасности: доступ заблокирован.");
+            throw new Error("Ошибка сервера при проверке билета.");
           }
           const data = await response.json();
-          renderParticipantCard(data);
+          renderTicketCard(data);
         } catch (error) {
-          showError(error.message || "Не удалось получить данные.");
+          showError(error.message || "Не удалось получить данные билета.");
           resetScanner();
         }
       }
 
-      function renderParticipantCard(user) {
+      function renderTicketCard(ticket) {
         hideError();
-        document.getElementById("user-name").innerText =
-          user?.name || "Без имени";
-        document.getElementById("user-ticket").innerText =
-          user?.ticket_type || "Обычный";
-        const statusElement = document.getElementById("user-status");
-        if (user?.checked_in) {
-          statusElement.innerText = "❌ Уже отмечен (Вход выполнен)";
-          statusElement.className = "text-sm font-semibold mt-1 text-red-400";
+
+        // Маппинг данных строго под твои названия полей из БД (без алиасов):
+        document.getElementById("event-title").innerText = ticket?.event_name || "Без названия";
+        document.getElementById("buyer-name").innerText = ticket?.name || "Не указано";
+        document.getElementById("tg-username").innerText = ticket?.username ? `@${ticket.username}` : "Нет юзернейма";
+
+        // Форматируем ID и тип мероприятия (festival / concert)
+        const typeRu = ticket?.event_type === "festival" ? "Фестиваль" : "Концерт";
+        document.getElementById("event-info").innerText = `#${ticket?.event_id || 0} [${typeRu}]`;
+
+        // Цена из БД (поле price)
+        document.getElementById("ticket-price").innerText = ticket?.price ? `${ticket.price} ₽` : "0 ₽";
+
+        // Проверка статуса захода по полю entered_at
+        const statusElement = document.getElementById("ticket-status");
+        if (ticket?.entered_at) {
+          statusElement.innerText = `❌ УЖЕ ИСПОЛЬЗОВАН (${ticket.entered_at})`;
+          statusElement.className = "text-xs font-bold mt-0.5 text-red-400 bg-red-950/40 p-1.5 rounded border border-red-500/20";
         } else {
-          statusElement.innerText = "✅ Доступ разрешен (Впервые)";
-          statusElement.className = "text-sm font-semibold mt-1 text-green-400";
+          statusElement.innerText = "✅ ДЕЙСТВИТЕЛЕН (Вход разрешен)";
+          statusElement.className = "text-xs font-bold mt-0.5 text-emerald-400 bg-emerald-950/40 p-1.5 rounded border border-emerald-500/20";
         }
+
         document.getElementById("scan-container").classList.add("hidden");
         document.getElementById("result-container").classList.remove("hidden");
       }
