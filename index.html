@@ -88,7 +88,7 @@
 
           <div
             id="error-message"
-            class="hidden text-sm text-red-200 bg-red-950/80 border border-red-500/40 rounded-xl p-3 mb-4"
+            class="hidden text-sm text-red-200 bg-red-950/80 border border-red-500/40 rounded-xl p-3 mb-4 text-center"
           ></div>
 
           <button
@@ -108,7 +108,7 @@
             id="event-title"
             class="text-base font-bold text-center text-purple-200 border-b border-white/10 pb-3 mb-4 tracking-wide"
           >
-            Название мероприятия
+            Загрузка данных билета...
           </h2>
 
           <div class="space-y-3.5 text-sm">
@@ -172,80 +172,33 @@
           ? window.Telegram.WebApp
           : null;
 
-      // СЮДА СВОЙ ДОМЕН / URL ОТ NGROK СЕРВЕРА FASTAPI
+      // СЮДА СВОЙ АКТУАЛЬНЫЙ ДОМЕН (NGROK ИЛИ РЕАЛЬНЫЙ СЕРВЕР)
       const API_BASE_URL = "https://daughter-equate-suburb.ngrok-free.dev";
 
-      // ФУНКЦИЯ ДЛЯ ВЫВОДА ЛОГОВ НА ЭКРАН
-      function logToScreen(type, message, data = null) {
-        const errorElement = document.getElementById("error-message");
-
-        // Делаем блок видимым, меняем стиль под системную консоль
-        errorElement.classList.remove("hidden");
-        errorElement.className =
-          "text-left text-xs font-mono bg-black/90 border border-purple-500/50 rounded-xl p-3 mb-4 max-h-60 overflow-y-auto space-y-1 text-gray-300 shadow-inner";
-
-        let colorClass = "text-blue-400"; // По умолчанию INFO
-        if (type === "SUCCESS") colorClass = "text-emerald-400 font-bold";
-        if (type === "ERROR") colorClass = "text-red-400 font-bold";
-        if (type === "WARN") colorClass = "text-amber-400";
-
-        const time = new Date().toLocaleTimeString();
-        let logLine = `<div>[${time}] <span class="${colorClass}">${type}</span>: ${message}</div>`;
-
-        if (data) {
-          logLine += `<pre class="text-[10px] text-gray-500 bg-gray-950 p-1.5 rounded mt-0.5 overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>`;
-        }
-
-        // Дописываем лог вниз
-        errorElement.innerHTML += logLine;
-        // Скроллим консоль вниз
-        errorElement.scrollTop = errorElement.scrollHeight;
-      }
-
-      function clearLogs() {
-        const errorElement = document.getElementById("error-message");
-        errorElement.innerHTML = "";
-        errorElement.classList.add("hidden");
-      }
-
       function initTelegramWebApp() {
-        logToScreen("INFO", "Инициализация Telegram WebApp...");
-        if (!tg) {
-          logToScreen(
-            "WARN",
-            "Telegram WebApp объект не найден! Работаем вне ТГ?",
-          );
-          return;
-        }
+        if (!tg) return;
         try {
           tg.ready();
-          logToScreen("INFO", "tg.ready() успешно вызван");
-          if (typeof tg.expand === "function") {
-            tg.expand();
-            logToScreen(
-              "INFO",
-              "tg.expand() вызван (развернуто на весь экран)",
-            );
-          }
-
-          // Логируем наличие initData
-          if (tg.initData) {
-            logToScreen(
-              "INFO",
-              `initData найдена (длина: ${tg.initData.length} символов)`,
-            );
-          } else {
-            logToScreen(
-              "WARN",
-              "initData ПУСТАЯ! Запрос на бэк может не пройти валидацию.",
-            );
-          }
+          if (typeof tg.expand === "function") tg.expand();
         } catch (error) {
-          logToScreen("ERROR", "Ошибка при инициализации ТГ:", error.message);
+          console.error("Ошибка инициализации WebApp:", error);
         }
+      }
+
+      function showError(message) {
+        const errorElement = document.getElementById("error-message");
+        errorElement.innerText = message;
+        errorElement.classList.remove("hidden");
+      }
+
+      function hideError() {
+        const errorElement = document.getElementById("error-message");
+        errorElement.classList.add("hidden");
+        errorElement.innerText = "";
       }
 
       function setLoadingState() {
+        hideError();
         document.getElementById("event-title").innerText =
           "Загрузка данных билета...";
         document.getElementById("buyer-name").innerText = "—";
@@ -253,68 +206,73 @@
         document.getElementById("event-info").innerText = "—";
         document.getElementById("ticket-price").innerText = "—";
         document.getElementById("ticket-status").innerText = "—";
+
+        document.getElementById("scan-container").classList.add("hidden");
+        document.getElementById("result-container").classList.remove("hidden");
       }
 
-      // Запускаем первичные логи
+      // Инициализируем базовые параметры WebApp
       initTelegramWebApp();
 
-      function startScanning() {
-        clearLogs();
-        logToScreen("INFO", "Нажата кнопка запуска сканера");
+      // АВТОМАТИЧЕСКИЙ ПЕРЕХВАТ STARTAPP ПРИ СТАРТЕ СТРАНИЦЫ
+      window.addEventListener("DOMContentLoaded", () => {
+        // 1. Пробуем достать из URL браузера (если зашли по прямой ссылке приложения)
+        const urlParams = new URLSearchParams(window.location.search);
+        let ticketId =
+          urlParams.get("tgWebAppStartParam") || urlParams.get("startapp");
 
+        // 2. Если в URL пусто, берем напрямую из безопасного контекста самого Telegram
+        if (!ticketId && tg && tg.initDataUnsafe) {
+          ticketId = tg.initDataUnsafe.start_param;
+        }
+
+        if (ticketId) {
+          console.log(
+            `[PROD] Найден стартовый параметр. Авто-проверка билета #${ticketId}`,
+          );
+          fetchDataFromServer(ticketId);
+        }
+      });
+
+      function startScanning() {
+        hideError();
         if (!tg) {
-          logToScreen("ERROR", "Не могу открыть сканер: запуск вне Telegram");
+          showError("Откройте страницу внутри Telegram Web Apps.");
           return;
         }
         if (
           typeof tg.isVersionAtLeast !== "function" ||
           !tg.isVersionAtLeast("6.4")
         ) {
-          logToScreen("ERROR", "Версия ТГ ниже 6.4. Сканер не поддерживается.");
+          showError("Пожалуйста, обновите Telegram до версии 6.4 или выше.");
           return;
         }
 
-        logToScreen("INFO", "Вызываем tg.showScanQrPopup...");
         tg.showScanQrPopup(
           { text: "Наведите камеру на QR-код билета" },
           function (text) {
-            logToScreen(
-              "SUCCESS",
-              `QR-код успешно считан! Текст из QR: "${text}"`,
-            );
             handleScannedUrl(text);
-            return true; // Закрываем шторку камеры
+            return true; // Команда Telegram мгновенно закрыть шторку камеры
           },
         );
       }
 
       function handleScannedUrl(text) {
         if (!text || typeof text !== "string") {
-          logToScreen("ERROR", " handleScannedUrl получил пустой текст");
+          showError("Получен пустой или некорректный QR-код.");
           return;
         }
-
-        logToScreen("INFO", "Парсим полученный текст в URL...");
         let parsedUrl;
         try {
           parsedUrl = new URL(text);
-          logToScreen("INFO", `URL успешно распарсен. Хост: ${parsedUrl.host}`);
         } catch (error) {
-          logToScreen("ERROR", "Текст из QR не является валидным URL-адресом");
+          showError("QR-код не содержит рабочий URL-адрес.");
           return;
         }
 
         const ticketId = parsedUrl.searchParams.get("startapp");
-        logToScreen(
-          "INFO",
-          `Ищем параметр 'startapp' в URL... Результат: "${ticketId}"`,
-        );
-
         if (!ticketId) {
-          logToScreen(
-            "ERROR",
-            "Параметр 'startapp' отсутствует в данном QR-коде!",
-          );
+          showError("В QR-коде не найден параметр билета (startapp).");
           return;
         }
 
@@ -323,73 +281,40 @@
 
       async function fetchDataFromServer(ticketId) {
         setLoadingState();
-        const targetUrl = `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}`;
-
-        logToScreen("INFO", "Подготовка к отправке fetch запроса...");
-        logToScreen("INFO", `👉 URL запроса: ${targetUrl}`);
-
-        const headersToSend = {
-          "Content-Type": "application/json",
-          "X-Tg-Init-Data": tg?.initData || "",
-          "ngrok-skip-browser-warning": "69420"
-        };
-        logToScreen("INFO", "👉 Отправляемые заголовки:", headersToSend);
-
         try {
-          logToScreen("INFO", "Отправляем fetch запрос на сервер...");
-          const response = await fetch(targetUrl, {
-            method: "GET",
-            headers: headersToSend,
-          });
-
-          logToScreen(
-            "INFO",
-            `Статус ответа от сервера: ${response.status} (${response.statusText})`,
+          const response = await fetch(
+            `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Tg-Init-Data": tg?.initData || "",
+              },
+            },
           );
 
           if (!response.ok) {
-            logToScreen(
-              "ERROR",
-              `Сервер вернул ошибку! Статус: ${response.status}`,
-            );
             if (response.status === 404)
               throw new Error("Билет не найден в базе данных.");
             if (response.status === 403)
-              throw new Error(
-                "Ошибка безопасности: доступ заблокирован бэкендом.",
-              );
-            throw new Error(`Ошибка сервера. Статус: ${response.status}`);
+              throw new Error("Ошибка доступа: неверная подпись Telegram.");
+            throw new Error(`Ошибка сервера (Статус: ${response.status}).`);
           }
 
-          logToScreen(
-            "INFO",
-            "Запрос успешен (response.ok = true). Читаем JSON body...",
-          );
           const data = await response.json();
-
-          logToScreen("SUCCESS", "Данные успешно получены с бэка!", data);
           renderTicketCard(data);
         } catch (error) {
-          logToScreen(
-            "ERROR",
-            `💥 Перехвачена критическая ошибка во fetch: "${error.message}"`,
-          );
-          // Если это реальный Failed to fetch, выведем подробности
-          if (error.message === "Failed to fetch") {
-            logToScreen(
-              "ERROR",
-              "Подсказка: Проверь, работает ли сервер/ngrok, совпадает ли ссылка, или это блокировка CORS/MixContent.",
-            );
-          }
+          console.error("[PROD ERROR] Fetch failed:", error.message);
+          showError(error.message || "Не удалось загрузить данные билета.");
+
+          // Возвращаем интерфейс в режим готовности к новому сканированию
+          document.getElementById("result-container").classList.add("hidden");
+          document.getElementById("scan-container").classList.remove("hidden");
         }
       }
 
       function renderTicketCard(ticket) {
-        logToScreen(
-          "INFO",
-          "Начинаем рендеринг карточки результата на экране...",
-        );
-
+        // Подставляем поля строго под структуру твоих таблиц SQLite3
         document.getElementById("event-title").innerText =
           ticket?.event_name || "Без названия";
         document.getElementById("buyer-name").innerText =
@@ -411,27 +336,20 @@
           statusElement.innerText = `❌ УЖЕ ИСПОЛЬЗОВАН (${ticket.entered_at})`;
           statusElement.className =
             "text-xs font-bold mt-0.5 text-red-400 bg-red-950/40 p-1.5 rounded border border-red-500/20";
-          logToScreen(
-            "WARN",
-            `Вход заблокирован: билет уже был погашен в ${ticket.entered_at}`,
-          );
         } else {
           statusElement.innerText = "✅ ДЕЙСТВИТЕЛЕН (Вход разрешен)";
           statusElement.className =
             "text-xs font-bold mt-0.5 text-emerald-400 bg-emerald-950/40 p-1.5 rounded border border-emerald-500/20";
-          logToScreen("SUCCESS", "Вход разрешен! Билет чистый.");
         }
 
         document.getElementById("scan-container").classList.add("hidden");
         document.getElementById("result-container").classList.remove("hidden");
-        logToScreen("SUCCESS", "Карточка результата успешно отображена.");
       }
 
       function resetScanner() {
-        clearLogs();
+        hideError();
         document.getElementById("result-container").classList.add("hidden");
         document.getElementById("scan-container").classList.remove("hidden");
-        logToScreen("INFO", "Сканер сброшен, готовы к новому сканированию");
       }
     </script>
   </body>
