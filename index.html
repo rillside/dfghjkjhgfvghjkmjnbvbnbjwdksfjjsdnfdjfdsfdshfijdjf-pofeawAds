@@ -420,6 +420,191 @@
         width: 80%;
       }
 
+      /* ── Lists button (main screen) ── */
+      .lists-btn {
+        font-family: "Inter", sans-serif;
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: rgba(196, 148, 255, 0.85);
+        background: rgba(168, 85, 247, 0.08);
+        border: 1px solid rgba(168, 85, 247, 0.25);
+        border-radius: 0.85rem;
+        padding: 0.8rem 1rem;
+        width: 100%;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        margin-top: 0.75rem;
+        letter-spacing: 0.03em;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      }
+      .lists-btn:hover { background: rgba(168, 85, 247, 0.15); color: #fff; }
+      .lists-btn:active { transform: scale(0.98); }
+
+      /* ── Events list screen ── */
+      .events-screen, .attendees-screen {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .screen-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 1rem;
+      }
+
+      .back-btn {
+        width: 34px; height: 34px;
+        border-radius: 0.6rem;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(200,180,230,0.8);
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .back-btn:hover { background: rgba(255,255,255,0.13); }
+      .back-btn:active { transform: scale(0.95); }
+
+      .screen-title {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 700;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(196, 148, 255, 0.9);
+      }
+
+      .event-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1rem;
+        padding: 0.85rem 1rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      .event-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, #a855f7, #6d28d9);
+        border-radius: 3px 0 0 3px;
+      }
+      .event-card:hover { background: rgba(168,85,247,0.1); border-color: rgba(168,85,247,0.3); }
+      .event-card:active { transform: scale(0.99); }
+
+      .event-card-name {
+        font-family: "Unbounded", sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.04em;
+        line-height: 1.3;
+      }
+
+      .event-card-meta {
+        font-family: "Inter", sans-serif;
+        font-size: 0.68rem;
+        color: rgba(160,140,190,0.7);
+        margin-top: 0.3rem;
+        display: flex; gap: 0.75rem; flex-wrap: wrap;
+      }
+
+      .event-card-meta span {
+        display: flex; align-items: center; gap: 0.25rem;
+      }
+
+      /* ── Attendees list ── */
+      .attendee-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 0.75rem;
+        border-radius: 0.75rem;
+        background: rgba(255,255,255,0.03);
+        border-left: 2px solid rgba(168,85,247,0.2);
+        margin-bottom: 0.4rem;
+      }
+
+      .attendee-status {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        width: 24px; text-align: center;
+      }
+
+      .attendee-info { flex: 1; min-width: 0; }
+
+      .attendee-name {
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .attendee-price {
+        font-family: "Inter", sans-serif;
+        font-size: 0.65rem;
+        color: #34d399;
+        margin-top: 0.1rem;
+      }
+
+      .attendee-entered {
+        font-family: "Inter", sans-serif;
+        font-size: 0.6rem;
+        color: rgba(248,113,113,0.7);
+        margin-top: 0.1rem;
+      }
+
+      .list-scroll {
+        max-height: 420px;
+        overflow-y: auto;
+        padding-right: 2px;
+      }
+      .list-scroll::-webkit-scrollbar { width: 3px; }
+      .list-scroll::-webkit-scrollbar-track { background: transparent; }
+      .list-scroll::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 3px; }
+
+      .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        font-family: "Inter", sans-serif;
+        font-size: 0.82rem;
+        color: rgba(160,140,190,0.6);
+        line-height: 1.6;
+      }
+
+      .attendees-event-title {
+        font-family: "Unbounded", sans-serif;
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: rgba(196,148,255,0.7);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: 0.5rem 0 0.85rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.75rem;
+      }
+
+      .attendees-counter {
+        font-family: "Inter", sans-serif;
+        font-size: 0.68rem;
+        color: rgba(160,140,190,0.6);
+        text-align: right;
+        margin-bottom: 0.5rem;
+      }
+
       /* ── Toast ── */
       #toast {
         position: fixed;
@@ -546,6 +731,15 @@
             </svg>
             Открыть сканер
           </button>
+
+          <button type="button" onclick="openEventsList()" class="lists-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+              <path d="M9 12h6M9 16h4"/>
+            </svg>
+            Списки Зрителей
+          </button>
         </div>
 
         <!-- Result card -->
@@ -636,6 +830,30 @@
             ↩ Сканировать следующий
           </button>
         </div>
+        <!-- Events list screen -->
+        <div id="events-container" class="result-card hidden" style="width:100%">
+          <div class="screen-header">
+            <button class="back-btn" onclick="closeEventsList()">←</button>
+            <span class="screen-title">Списки Зрителей</span>
+          </div>
+          <div id="events-list-body">
+            <div class="empty-state">Загрузка мероприятий...</div>
+          </div>
+        </div>
+
+        <!-- Attendees screen -->
+        <div id="attendees-container" class="result-card hidden" style="width:100%">
+          <div class="screen-header">
+            <button class="back-btn" onclick="closeAttendees()">←</button>
+            <span class="screen-title">Зрители</span>
+          </div>
+          <div id="attendees-event-name" class="attendees-event-title"></div>
+          <div id="attendees-counter" class="attendees-counter"></div>
+          <div id="attendees-list-body" class="list-scroll">
+            <div class="empty-state">Загрузка списка...</div>
+          </div>
+        </div>
+
       </main>
     </div>
 
@@ -1003,6 +1221,154 @@
       function resetScanner() {
         document.getElementById("result-container").classList.add("hidden");
         document.getElementById("scan-container").classList.remove("hidden");
+      }
+
+      // ─── Helpers: show/hide screens ──────────────────────────────────────────
+
+      function showOnly(id) {
+        ["scan-container", "result-container", "events-container", "attendees-container"]
+          .forEach(s => document.getElementById(s).classList.add("hidden"));
+        document.getElementById(id).classList.remove("hidden");
+      }
+
+      // ─── Events list ─────────────────────────────────────────────────────────
+
+      async function openEventsList() {
+        showOnly("events-container");
+        document.getElementById("events-list-body").innerHTML =
+          `<div class="empty-state">⏳ Загружаем мероприятия...</div>`;
+
+        const userId = tg?.initDataUnsafe?.user?.id;
+        if (!userId) {
+          document.getElementById("events-list-body").innerHTML =
+            `<div class="empty-state">Не удалось определить пользователя Telegram.</div>`;
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/events?user_id=${encodeURIComponent(userId)}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Tg-Init-Data": tg?.initData || "",
+                "ngrok-skip-browser-warning": "69420",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            document.getElementById("events-list-body").innerHTML =
+              `<div class="empty-state">Ошибка загрузки. Код: ${response.status}</div>`;
+            return;
+          }
+
+          const data = await response.json();
+          renderEventsList(data);
+        } catch {
+          document.getElementById("events-list-body").innerHTML =
+            `<div class="empty-state">Нет связи с сервером.</div>`;
+        }
+      }
+
+      function renderEventsList(data) {
+        const body = document.getElementById("events-list-body");
+
+        if (!data || data === "No events" || (Array.isArray(data) && data.length === 0)) {
+          body.innerHTML = `<div class="empty-state">📭 Для вас нет доступных мероприятий.</div>`;
+          return;
+        }
+
+        const events = Array.isArray(data) ? data : [data];
+        body.innerHTML = `<div class="list-scroll">` +
+          events.map(ev => {
+            const meta = [];
+            if (ev.event_date) meta.push(`<span>📅 ${ev.event_date}</span>`);
+            if (ev.event_location) meta.push(`<span>📍 ${ev.event_location}</span>`);
+            return `
+              <div class="event-card" onclick="openAttendees(${ev.event_id}, ${JSON.stringify(ev.event_name)})">
+                <div class="event-card-name">${ev.event_name} <span style="opacity:0.45;font-weight:400">(#${ev.event_id})</span></div>
+                ${meta.length ? `<div class="event-card-meta">${meta.join('')}</div>` : ''}
+              </div>`;
+          }).join('') +
+        `</div>`;
+      }
+
+      function closeEventsList() {
+        showOnly("scan-container");
+      }
+
+      // ─── Attendees list ───────────────────────────────────────────────────────
+
+      async function openAttendees(eventId, eventName) {
+        showOnly("attendees-container");
+        document.getElementById("attendees-event-name").textContent = eventName;
+        document.getElementById("attendees-counter").textContent = "";
+        document.getElementById("attendees-list-body").innerHTML =
+          `<div class="empty-state">⏳ Загружаем список...</div>`;
+
+        const userId = tg?.initDataUnsafe?.user?.id;
+
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/api/events/${encodeURIComponent(eventId)}/attendees?user_id=${encodeURIComponent(userId)}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Tg-Init-Data": tg?.initData || "",
+                "ngrok-skip-browser-warning": "69420",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            document.getElementById("attendees-list-body").innerHTML =
+              `<div class="empty-state">Ошибка загрузки. Код: ${response.status}</div>`;
+            return;
+          }
+
+          const data = await response.json();
+          renderAttendeesList(data);
+        } catch {
+          document.getElementById("attendees-list-body").innerHTML =
+            `<div class="empty-state">Нет связи с сервером.</div>`;
+        }
+      }
+
+      function renderAttendeesList(data) {
+        const body = document.getElementById("attendees-list-body");
+
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+          body.innerHTML = `<div class="empty-state">Список пуст.</div>`;
+          return;
+        }
+
+        const list = Array.isArray(data) ? data : Object.values(data);
+        const entered = list.filter(a => a.entered_at).length;
+        document.getElementById("attendees-counter").textContent =
+          `Вошли: ${entered} / ${list.length}`;
+
+        body.innerHTML = list.map(a => {
+          const icon = a.entered_at ? "✅" : "⏳";
+          const enteredLine = a.entered_at
+            ? `<div class="attendee-entered">Вход: ${a.entered_at}</div>`
+            : "";
+          return `
+            <div class="attendee-row">
+              <div class="attendee-status">${icon}</div>
+              <div class="attendee-info">
+                <div class="attendee-name">${a.name || "—"}</div>
+                <div class="attendee-price">${a.price ? a.price + " ₽" : ""}</div>
+                ${enteredLine}
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      function closeAttendees() {
+        showOnly("events-container");
       }
     </script>
   </body>
