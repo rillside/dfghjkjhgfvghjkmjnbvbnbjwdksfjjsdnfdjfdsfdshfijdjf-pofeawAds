@@ -1099,11 +1099,15 @@
 
         const startParam = tg?.initDataUnsafe?.start_param;
         if (startParam) {
-          isTicketViewMode = true;
-          document.getElementById("scan-next-btn").classList.add("hidden");
-          showOnly("result-container");
-          setLoadingState();
-          fetchDataFromServer(startParam);
+          const parts = startParam.split("|");
+          if (parts.length === 3) {
+            const [ticketId, buyerName, purchasedAt] = parts;
+            isTicketViewMode = true;
+            document.getElementById("scan-next-btn").classList.add("hidden");
+            showOnly("result-container");
+            setLoadingState();
+            fetchDataFromServer(ticketId, buyerName, purchasedAt);
+          }
         }
       })();
 
@@ -1178,8 +1182,8 @@
           return;
         }
 
-        const ticketId = parsedUrl.searchParams.get("startapp");
-        if (!ticketId) {
+        const startapp = parsedUrl.searchParams.get("startapp");
+        if (!startapp) {
           showToast(
             "error",
             "Неверный QR-код",
@@ -1187,12 +1191,24 @@
           );
           return;
         }
-        fetchDataFromServer(ticketId);
+
+        const parts = startapp.split("|");
+        if (parts.length !== 3) {
+          showToast(
+            "error",
+            "Неверный QR-код",
+            "Структура кода не соответствует билету.",
+          );
+          return;
+        }
+
+        const [ticketId, buyerName, purchasedAt] = parts;
+        fetchDataFromServer(ticketId, buyerName, purchasedAt);
       }
 
       // ─── Fetch ───────────────────────────────────────────────────────────────
 
-      async function fetchDataFromServer(ticketId) {
+      async function fetchDataFromServer(ticketId, buyerName, purchasedAt) {
         currentTicketId = ticketId;
         if (!isTicketViewMode) {
           setLoadingState();
@@ -1202,7 +1218,12 @@
             .classList.remove("hidden");
         }
 
-        const targetUrl = `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}`;
+        const userId = tg?.initDataUnsafe?.user?.id;
+        const targetUrl =
+          `${API_BASE_URL}/api/participant/${encodeURIComponent(ticketId)}` +
+          `?buyer_name=${encodeURIComponent(buyerName || "")}` +
+          `&purchased_at=${encodeURIComponent(purchasedAt || "")}` +
+          `&user_id=${encodeURIComponent(userId || "")}`;
 
         try {
           const response = await fetch(targetUrl, {
@@ -1216,7 +1237,13 @@
 
           if (!response.ok) {
             resetScanner();
-            if (response.status === 404)
+            if (response.status === 400)
+              showToast(
+                "error",
+                "⚠️ Фальшивый билет!",
+                "Данные билета не совпадают с базой. Билет недействителен.",
+              );
+            else if (response.status === 404)
               showToast(
                 "error",
                 "Билет не найден",
